@@ -1,0 +1,96 @@
+#pragma once
+#define UWORLD 0x11770d88
+#define GAME_INSTANCE 0x1d0 //UWorld* OwningGameInstance
+#define LOCAL_PLAYERS 0x38
+#define PLAYER_CONTROLLER 0x30
+#define LOCAL_PAWN 0x338 //APlayerController* AcknowledgedPawn
+#define PAWN_PRIVATE 0x308 //APlayerState* PawnPrivate
+#define ROOT_COMPONENT 0x198 //AActor* RootComp
+#define RELATIVE_LOCATION 0x120 // USceneComp* RelativeLocation
+#define PLAYER_STATE 0x2b0 // APawn 
+#define TEAM_INDEX 0x10f1 // AFortPlayerStateAthena->TeamIndex 0x10f1
+#define GAME_STATE 0x158 ///UWorld* GameState
+#define PLAYER_ARRAY 0x2a8 // AGameStateBase
+#define MESH 0x318 //  ACharacter
+#define COMPONENT_TO_WORLD 0x1c0 // CachedWorldToLocalTransform
+#define BONE_ARRAY 0x608 // 
+#define BONE_ARRAY_CACHE 0x650 // 
+#define LAST_SUMBIT_TIME 0x2ec // LastRenderTime
+#define LAST_SUMBIT_TIME_ON_SCREEN 0x2f4 // LastSumbitTime
+#define DBNO 0x93a // FortniteGameClass.AFortPawn // bIsDBNO
+
+
+-- UPDATED TO NEW PATCH
+
+Vector3 GetBoneR(uintptr_t mesh, int bone_id)
+{
+	int isCached = hv->read<int>(mesh + 0x5e0);
+	uintptr_t BoneArray = hv->read<uintptr_t>(mesh + 0x598 + (isCached * 0x10));
+	FTransform Bone = hv->read <FTransform>(BoneArray + 0x60 * bone_id);
+
+	FTransform ComponentToWorld =hv->read<FTransform>(mesh + COMPONENT_TO_WORLD);
+	D3DMATRIX matrix = matrix_multiplication(Bone.to_matrix_with_scale(), ComponentToWorld.to_matrix_with_scale());
+	return Vector3(matrix._41, matrix._42, matrix._43);
+}
+
+PlayerName FSTRING updated here it is:
+	auto fstring = (kernel->read<__int64>)(PlayerState + 0xaf0);
+
+Player Decryption No Update Other Than FSTRING:
+
+
+std::string GetPlayerName(__int64 PlayerState)
+{
+	auto fstring = (kernel->read<__int64>)(PlayerState + 0xaf0);
+	auto length = (kernel->read<int>)(fstring + 16);
+
+	auto v6 = (__int64)length; 
+	if (!v6) return std::string(("AI/BOT"));
+
+	auto ftext = (uintptr_t)(kernel->read<__int64>)(fstring + 8);
+
+	wchar_t* buffer = new wchar_t[length];
+	driver::read_physical((PVOID)ftext, buffer, length * sizeof(wchar_t));
+
+	char v21;
+	int v22;
+	int i;
+
+	int v25;
+	UINT16* v23;
+
+	v21 = v6 - 1;
+	if (!(UINT32)v6)
+		v21 = 0;
+	v22 = 0;
+	v23 = (UINT16*)buffer;
+	for (i = (v21) & 3; ; *v23++ += i & 7)
+	{
+		v25 = v6 - 1;
+		if (!(UINT32)v6)
+			v25 = 0;
+		if (v22 >= v25)
+			break;
+		i += 3;
+		++v22;
+	}
+
+	std::wstring username{ buffer };
+	return std::string(username.begin(), username.end());
+}
+
+-- NO UPDATE FOR VIEWMIN AND VIEWMAX
+
+ViewYawMin = 0x238c // Cam Manager
+ ViewYawMax = 0x2390 // Cam Manager
+ ViewPitchMin = 0x2384 // Cam Manager
+ ViewPitchMax = 0x2388 // Cam Manager
+
+
+-- NO UPDATE TO BONE IDS
+
+
+COMPTOWORLD = 0x1c0 -- UPDATED
+
+
+
